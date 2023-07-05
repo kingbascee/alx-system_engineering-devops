@@ -1,4 +1,4 @@
-#!/usr/bin env bash
+#!/usr/bin/env bash
 # Using puppet to make changes to our configuratiuon
 
 file { 'etc/ssh/ssh_config':
