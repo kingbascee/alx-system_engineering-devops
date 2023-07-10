@@ -10,41 +10,26 @@ sudo apt-get -y update
 # Install Nginx
 sudo apt-get -y install nginx
 
-# Allow Nginx HTTP traffic
-sudo ufw allow 'Nginx HTTP'
 
-# Create necessary directories and set permissions
-sudo mkdir -p /var/www/html /var/www/error
-sudo chmod -R 755 /var/www
 
 # Create index and 404 pages
-echo 'Hello World!' | sudo tee /var/www/html/index.html >/dev/null
-echo "Ceci n'est pas une page" | sudo tee /var/www/html/404.html >/dev/null
+echo 'Hello World!' | sudo tee /var/www/html/index.html
 
-# Configure Nginx with custom header
-server_config=$(cat <<EOF
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    root /var/www/html;
-    index index.html index.htm index.nginx-debian.html;
-    server_name _;
-    add_header X-Served-By \$hostname;
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-    if (\$request_filename ~ redirect_me) {
-        rewrite ^ https://github.com/kingbascee permanent;
-    }
-    error_page 404 /404.html;
-    location = /404.html {
-        internal;
-    }
-}
-EOF
-)
+#performing redirection
+new_string="server_name _;\n\trewrite ^\/redirect_me https:\/\/github.com\/kingbascee permanent;"
 
-echo "$server_config" | sudo tee /etc/nginx/sites-enabled/default >/dev/null
+sudo sed -i "s/server_name _;/$new_string/" /etc/nginx/sites-enabled/default
+
+#creating a custom error page
+
+echo "Ceci n'est pas une page" | sudo tee /var/www/html/404.html
+
+# Custom HTTP RESPONSE HEADER
+
+sudo sed -i "sever_name _;/a add_header X-Served-By $HOSTNAME;" /etc/nginx/sites-enabled/default
+
+#Test for syntax Error
+sudo nginx -t
 
 # Restart Nginx service
 sudo service nginx restart
